@@ -116,7 +116,7 @@ export default {
           Make the request to the POST /select-files URL
         */
       axios
-        .post(`https://boiling-thicket-67686.herokuapp.com//${service}`, formData, {
+        .post(`https://boiling-thicket-67686.herokuapp.com/${service}`, formData, {
           headers: {
             "Content-Type": "multipart/form-data"
           }
