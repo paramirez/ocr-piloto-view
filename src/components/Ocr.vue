@@ -37,14 +37,7 @@ span.remove-file {
       <a-tabs v-model="activeKey">
         <a-tab-pane tab="Archivo" key="1">
           <div v-if="!files.length">
-            <input
-              type="file"
-              id="file"
-              name="file"
-              ref="files"
-              @change="handleFilesUpload"
-              accept="image/*"
-            >
+            <input type="file" id="file" name="file" ref="files" @change="handleFilesUpload">
             <a-button @click="addFiles" icon="upload" type="dashed">Seleccionar Archivo</a-button>
           </div>
           <div v-else class="buttons">
@@ -116,17 +109,21 @@ export default {
           Make the request to the POST /select-files URL
         */
       axios
-        .post(`https://boiling-thicket-67686.herokuapp.com/${service}`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data"
+        .post(
+          `https://boiling-thicket-67686.herokuapp.com/${service}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
           }
-        })
+        )
         .then(res => {
           if (res.data) {
             this.result = res.data;
             if (service === "vision")
               this.resultClean = this.equalize(res.data);
-            else this.resultClean = res.data;
+            else this.resultClean = this.equalizeAws(res.data.data);
             this.activeKey = "2";
           } else {
             this.result = "Sin respuesta";
@@ -135,7 +132,7 @@ export default {
         })
         .catch(err => {
           console.log(err);
-          this.result = error;
+          this.result = err;
           this.spinning = false;
           this.$message.error("ocurrio un eror");
           this.activeKey = "3";
@@ -196,6 +193,22 @@ export default {
       Object.keys(temp).map(key => {
         answer[key] = temp[key];
       });
+      return answer;
+    },
+    equalizeAws(result) {
+      const blocks = result.Blocks;
+      console.log(result)
+      let answer = "";
+      if (Array.isArray(blocks)) {
+        answer = blocks.reduce((init, block, index) => {
+          if (block.BlockType === "LINE") {
+            if (block.Text) {
+              init = init + `\n ${index} ${block.Text}`;
+            }
+          }
+          return init;
+        }, answer);
+      }
       return answer;
     },
     /*
