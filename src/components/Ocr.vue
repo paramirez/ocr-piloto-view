@@ -197,17 +197,16 @@ export default {
     },
     equalizeAws(result) {
       const blocks = result.Blocks;
-      console.log(result)
-      let answer = "";
+      console.log(result);
+      const answer = {};
       if (Array.isArray(blocks)) {
-        answer = blocks.reduce((init, block, index) => {
+        blocks.forEach((block, index) => {
           if (block.BlockType === "LINE") {
             if (block.Text) {
-              init = init + `\n ${index} ${block.Text}`;
+              answer[`${index}`] = block.Text;
             }
           }
-          return init;
-        }, answer);
+        });
       }
       return answer;
     },
