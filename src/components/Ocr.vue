@@ -44,6 +44,7 @@ span.remove-file {
             <a-button @click="removeFile(0)" icon="delete" type="danger">Remover Archivo</a-button>
             <a-button @click="submitFiles('vision')" icon="google" type="dashed">Google Vision</a-button>
             <a-button @click="submitFiles('textract')" icon="amazon" type="dashed">Amazon TextRact</a-button>
+            <a-button @click="submitFiles('textract/analyze')" icon="amazon" type="dashed">Amazon TextRact Tables</a-button>
             <img :src="imageData">
           </div>
         </a-tab-pane>
@@ -110,7 +111,8 @@ export default {
         */
       axios
         .post(
-          `https://boiling-thicket-67686.herokuapp.com/${service}`,
+          `http://localhost:3003/${service}`,
+          // `https://boiling-thicket-67686.herokuapp.com/${service}`,
           formData,
           {
             headers: {
@@ -123,6 +125,7 @@ export default {
             this.result = res.data;
             if (service === "vision")
               this.resultClean = this.equalize(res.data);
+            else if("textract/analyze") this.resultClean = this.equalizeAws(res.data.data);
             else this.resultClean = this.equalizeAws(res.data.data);
             this.activeKey = "2";
           } else {
@@ -209,6 +212,39 @@ export default {
         });
       }
       return answer;
+    },
+    equalizeAwsAnalyze(result) {
+      const blocks = result.Blocks;
+      console.log(result);
+      const answerKeyValue = {};
+      const answer = {};
+      if (Array.isArray(blocks)) {
+        blocks.forEach((block, index) => {
+          if (block.BlockType === "LINE") {
+            if (block.Text) {
+              answer[`${index}`] = block.Text;
+            }
+          }
+          if (block.BlockType === "KEY_VALUE_SET") {
+            if (block.EntityTypes) {
+              block.EntityTypes.map(e => {
+                if(e === 'KEY') {
+
+                  const values = block.Relationships.filter(i => i.Type === 'VALUE');
+                  values.forEach(value => {
+                    
+                  })
+                }
+              })
+              answer[`${index}`] = block.Text;
+            }
+          }
+        });
+      }
+      return {
+        answer,
+        answerKeyValue
+      };
     },
     /*
         Removes a select file the user has uploaded
